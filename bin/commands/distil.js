@@ -48,7 +48,8 @@ module.exports = {
 	exec: function () {
 		var args = parseArgs(defaultSwitches);
 		parseCommand(args);
-	}
+	},
+	parseCommand: parseCommand
 
 };
 
