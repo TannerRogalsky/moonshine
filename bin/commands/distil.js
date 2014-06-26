@@ -30,6 +30,7 @@ var Parser = require('../../distillery/distillery.moonshine.js').Parser,
 	fs = require('fs'),
 	COLORS = require('./common').COLORS,
 	parseArgs = require('./common').parseArgs,
+	crypto = require('crypto'),
 	defaultSwitches = {
 		outputFilename: ['-o', ''],
 		outputPath: ['-d', '.'],
@@ -49,8 +50,8 @@ module.exports = {
 		var args = parseArgs(defaultSwitches);
 		parseCommand(args);
 	},
-	parseCommand: parseCommand
-
+	parseCommand: parseCommand,
+	distil_stdin: distil_stdin
 };
 
 
@@ -164,7 +165,36 @@ function compile (filename, callback) {
 	});
 }
 
+function compile_stdin(data, callback) {
+	var shasum = crypto.createHash('sha1');
+	shasum.update(data);
+	var luacFilename = shasum.digest('hex') + '.moonshine.luac',
+		errPart;
 
+	exec("echo '" + data + "' | luac -o " + luacFilename + " -", function (err, stdout, stderr) {
+		if (err) {
+			errPart = err.message.split(/:\s?/);
+			if (errPart[1] != 'luac') throw err;
+
+			console.error(COLORS.RED + 'Luac compile error in file ' + errPart[2] + ' on line ' + errPart[3] + ':\n\t' + errPart[4] + COLORS.RESET);
+			return;
+		}
+		callback(fs.readFileSync(luacFilename, 'binary').toString());
+		fs.unlink(luacFilename);
+	});
+}
+
+function distil_stdin(data, switches, callback) {
+	compile_stdin(data, function (bytecode) {
+
+		var parser = new Parser(),
+			config = {
+				stripDebugging: switches.stripDebugging,
+				useInstructionObjects: switches.jsonFormat
+			};
+		parser.parse(bytecode, config, callback);
+	});
+}
 
 
 function distil (source, switches, callback) {
