@@ -56,7 +56,7 @@ module.exports = {
 
 
 
-function parseCommand (args) {
+function parseCommand (args, callback) {
 	var files = [],
 		outputPath = args.switches.outputPath,
 		depth = args.switches.noRecursion? 1 : Infinity,
@@ -87,6 +87,10 @@ function parseCommand (args) {
 		}
 	};
 
+	if (!callback) {
+		callback = success;
+	}
+
 
 	for (i = 0, l = args.filenames.length; i < l; i++) {
 		path = args.filenames[i];
@@ -99,17 +103,17 @@ function parseCommand (args) {
 
 
 	if (args.switches.outputFilename && files.length > 1) {
-		distilPackage(files, root, args.switches, success);
+		distilPackage(files, root, args.switches, callback);
 
 	} else {
 		for (i = 0, l = files.length; i < l; i++) {
 			outstanding++;
 
-			distilFile(files[i][0], files[i][1], args.switches, function () { 
-				if (!--outstanding) success();
+			distilFile(files[i][0], files[i][1], args.switches, function () {
+				if (!--outstanding) callback();
 			});
 
-			if (!l) success();
+			if (!l) callback();
 		}
 	}
 }
