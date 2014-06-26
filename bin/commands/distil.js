@@ -49,8 +49,8 @@ module.exports = {
 		var args = parseArgs(defaultSwitches);
 		parseCommand(args);
 	},
-	parseCommand: parseCommand
-
+	parseCommand: parseCommand,
+	distil: distil
 };
 
 
