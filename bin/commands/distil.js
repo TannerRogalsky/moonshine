@@ -158,8 +158,10 @@ function compile (filename, callback) {
 		if (err) {
 			errPart = err.message.split(/:\s?/);
 			if (errPart[1] != 'luac') throw e;
-			
-			console.error(COLORS.RED + 'Luac compile error in file ' + errPart[2] + ' on line ' + errPart[3] + ':\n\t' + errPart[4] + COLORS.RESET);
+
+			var errorText = 'Luac compile error in file ' + errPart[2] + ' on line ' + errPart[3] + ':\n\t' + errPart[4];
+			console.error(COLORS.RED + errorText + COLORS.RESET);
+			callback(false, errorText)
 			return;
 		}
 
@@ -172,8 +174,13 @@ function compile (filename, callback) {
 
 
 function distil (source, switches, callback) {
-	compile(source, function (bytecode) {
-		
+	compile(source, function (bytecode, errorText) {
+		if (!bytecode) {
+			// there was an error
+			callback(false, errorText)
+			return
+		}
+
 		var parser = new Parser(),
 			config = {
 				stripDebugging: switches.stripDebugging,
