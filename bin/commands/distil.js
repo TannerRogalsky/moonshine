@@ -162,6 +162,7 @@ function compile (filename, callback) {
 			var errorText = 'Luac compile error in file ' + errPart[2] + ' on line ' + errPart[3] + ':\n\t' + errPart[4];
 			console.error(COLORS.RED + errorText + COLORS.RESET);
 			callback(false, errorText)
+			fs.unlink(luacFilename);
 			return;
 		}
 
