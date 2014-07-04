@@ -165,8 +165,16 @@ function compile (filename, callback) {
 			return;
 		}
 
-		callback(fs.readFileSync(luacFilename, 'binary').toString());
-		fs.unlink(luacFilename);
+		fs.readFile(luacFilename, {encoding: 'binary'}, function(err, data){
+			if (err) {
+				console.error(err.message);
+				callback(false, "Whoops, something went wrong!");
+				return;
+			}
+
+			callback(data.toString());
+			fs.unlink(luacFilename);
+		});
 	});
 }
 
